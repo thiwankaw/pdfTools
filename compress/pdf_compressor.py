@@ -2,9 +2,33 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 import subprocess
 import os
+import shutil
+import sys
+
+def find_ghostscript():
+    """Return the Ghostscript executable for the current platform."""
+    if sys.platform == "win32":
+        candidates = ("gswin64c", "gswin32c", "gs")
+    else:
+        candidates = ("gs",)
+
+    for cmd in candidates:
+        path = shutil.which(cmd)
+        if path:
+            return path
+    return None
 
 def compress_pdf(input_file_path, output_file_path, power_level):
     """Compresses the PDF using Ghostscript."""
+    gs_executable = find_ghostscript()
+    if gs_executable is None:
+        return False, (
+            "Ghostscript not found. Install it and ensure it is on your PATH.\n"
+            "macOS: brew install ghostscript\n"
+            "Linux: sudo apt install ghostscript  (Debian/Ubuntu)\n"
+            "Windows: winget install Artifex.Ghostscript"
+        ), 0
+
     quality_levels = {
         "Default": '/default',
         "Prepress (High)": '/prepress',
@@ -14,7 +38,7 @@ def compress_pdf(input_file_path, output_file_path, power_level):
     }
 
     gs_command = [
-        "gs", 
+        gs_executable,
         "-sDEVICE=pdfwrite",
         "-dCompatibilityLevel=1.4",
         f"-dPDFSETTINGS={quality_levels.get(power_level, '/screen')}",
