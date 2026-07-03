@@ -4,6 +4,7 @@ import subprocess
 import os
 import shutil
 import sys
+from datetime import date
 
 def find_ghostscript():
     """Return the Ghostscript executable for the current platform."""
@@ -72,12 +73,17 @@ def select_and_compress():
     if not input_path:
         return # User cancelled
 
+    input_dir = os.path.dirname(input_path)
+    base_name = os.path.splitext(os.path.basename(input_path))[0]
+    default_name = f"{base_name}-{date.today():%Y-%m-%d}-compressed.pdf"
+
     # Ask where to save
     output_path = filedialog.asksaveasfilename(
         title="Save compressed PDF as...",
         defaultextension=".pdf",
         filetypes=[("PDF Files", "*.pdf")],
-        initialfile="compressed_output.pdf"
+        initialdir=input_dir,
+        initialfile=default_name,
     )
 
     if not output_path:
